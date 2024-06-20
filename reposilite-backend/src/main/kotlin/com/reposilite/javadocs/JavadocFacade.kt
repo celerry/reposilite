@@ -72,8 +72,9 @@ class JavadocFacade internal constructor(
 
     fun findRawJavadocResource(request: JavadocRawRequest): Result<JavadocRawResponse, ErrorResponse> =
         with (request) {
-            mavenFacade.canAccessResource(accessToken, repository, gav)
-                .flatMap { javadocContainerService.loadContainer(accessToken, repository, gav) }
+            val resolvedGav = resolveGav(JavadocPageRequest(accessToken, repository, gav))
+            mavenFacade.canAccessResource(accessToken, repository, resolvedGav)
+                .flatMap { javadocContainerService.loadContainer(accessToken, repository, resolvedGav) }
                 .filter({ Files.exists(it.javadocUnpackPath.resolve(resource.toString())) }, { notFound("Resource $resource not found") })
                 .map {
                     JavadocRawResponse(
